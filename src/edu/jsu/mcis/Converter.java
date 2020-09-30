@@ -68,7 +68,34 @@ public class Converter {
             Iterator<String[]> iterator = full.iterator();
             
             // INSERT YOUR CODE HERE
+            JSONArray colHeaders = new JSONArray();
+            JSONArray rowHeaders = new JSONArray();
+            JSONArray data = new JSONArray();
             
+            JSONObject x = new JSONObject();
+            String[] line = iterator.next();
+           
+            for(String i : line)
+            {
+                colHeaders.add(i);
+            }
+           
+            while(iterator.hasNext())
+            {
+            JSONArray dataLine = new JSONArray();
+                line = iterator.next();
+                rowHeaders.add(line[0]);
+                for(int i = 1; i < line.length; i++){
+                    dataLine.add(Integer.parseInt(line[i]));
+                }
+                data.add(dataLine);
+            }
+            
+            x.put("colHeaders", colHeaders);
+            x.put("rowHeaders", rowHeaders);
+            x.put("data", data);
+            
+            results = x.toJSONString();
         }        
         catch(Exception e) { return e.toString(); }
         
@@ -86,7 +113,56 @@ public class Converter {
             CSVWriter csvWriter = new CSVWriter(writer, ',', '"', '\n');
             
             // INSERT YOUR CODE HERE
+            JSONParser par = new JSONParser();
+            JSONObject jsonObj = (JSONObject)par.parse(jsonString);
+            JSONArray rows = (JSONArray) jsonObj.get("rowHeaders");
+            JSONArray info = (JSONArray) jsonObj.get("data");
+            JSONArray cols = (JSONArray) jsonObj.get("colHeaders");
             
+            Iterator<String> row = rows.iterator();
+            Iterator<JSONArray> data = info.iterator();
+            Iterator<String> colHead = cols.iterator();
+            
+            ArrayList<String> Rows = new ArrayList<>();
+            ArrayList<JSONArray> Data = new ArrayList<>();
+            ArrayList<String> Cols = new ArrayList<>();
+            
+            while(row.hasNext()){
+                Rows.add(row.next());
+            }
+            
+            while(data.hasNext()){
+                Data.add(data.next());
+            }
+            
+            while(colHead.hasNext()){
+                Cols.add(colHead.next());
+            }
+            
+            String Col[] = Cols.toArray(new String[Cols.size()]);
+            csvWriter.writeNext(Col);
+            ArrayList<String[]> datas = new ArrayList<>();
+            
+            for (int i=0;i<Data.size();i++)
+            { 
+                String[] x = Data.get(i).toString().split(",");
+                x[0] = x[0].replace("[", "");
+                x[x.length-1] = x[x.length-1].replace("]", "");
+                datas.add(x);
+            }
+            
+            for(int i = 0; i < datas.size(); i++)
+            {
+                String[] line = new String[datas.get(0).length+1];
+                String[] dat = datas.get(i);
+                line[0] = Rows.get(i);
+                for(int j = 1; j < dat.length+1;j++)
+                {
+                    line[j] = dat[j-1];
+                }
+                csvWriter.writeNext(line);
+            }
+            results = writer.toString();
         }
         
         catch(Exception e) { return e.toString(); }
